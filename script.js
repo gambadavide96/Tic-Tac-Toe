@@ -1,6 +1,6 @@
 function Cell() {
 
-  let value = 0;
+  let value = '-';
 
   const addToken = (playerToken) => {
     value = playerToken;
@@ -12,7 +12,7 @@ function Cell() {
 
 }
 
-function GameBoard() {
+const GameBoard =(() => {
 
   const rows = 3;
   const columns = 3;
@@ -35,20 +35,20 @@ function GameBoard() {
      // Check valid coordinates
     if (row < 0 || column < 0 || row > board.length || column > board[0].length) {
       console.log("Please choose valid coordinates")
-      return 1;
+      return true;
     }
 
     let cell = board[row][column];
 
     //Se la cella è già stata occupata, la mossa non è valida
-    if(cell.getValue()) {
+    if(cell.getValue() === 'X' || cell.getValue === 'O') {
       console.log("This cell is already occupied, choose another");
-      return 1;
+      return true;
     }
 
     cell.addToken(playerT)
 
-    return 0;
+    return false;
   }
 
   const printBoard = () => {
@@ -59,22 +59,20 @@ function GameBoard() {
 
   return {getBoard,dropToken,printBoard}
 
-}
+})()
 
-function GameController() {
+const GameController = (() => {
 
   const players = [
     {
       name: 'PlayerOne',
-      token: 1
+      token: 'X'
     },
     {
       name: 'PlayerTwo',
-      token: 2
+      token: 'O'
     }
   ]
-
-  const board = GameBoard();
 
   let activePlayer = players[0];  //All'inizio parte player1
   const getActivePlayer = () => activePlayer;
@@ -84,14 +82,40 @@ function GameController() {
   }
 
   const printNewRound = () => {
-    board.printBoard()
+    GameBoard.printBoard()
     console.log(`${activePlayer.name} turn`)
+  }
+
+  const checkRows = (values) => {
+   
+  }
+
+  const checkColumns = (values) => {
+
+  }
+
+  const checkDiagonal = (values) => {
+    
+  }
+
+  const checkWinner = () => {
+    const values = GameBoard.getBoard().map(row => row.map(cell => cell.getValue()));
+    //Check rows
+    const resultRow = checkRows(values);
+    //Check columns
+    const resultColumn = checkColumns(values)
+    //Check diagonal
+    const resulDiagonal = checkDiagonal(values)
+
+
+    console.log(result)
+
   }
 
   const playRound = (row,column) => {
 
     console.log(`The ${activePlayer.name} choose row: ${row} and column: ${column}`);
-    const error = board.dropToken(activePlayer.token,row,column);
+    const error = GameBoard.dropToken(activePlayer.token,row,column);
     if (error) return ;
 
     /*  This is where we would check for a winner and handle that logic,
@@ -106,17 +130,17 @@ function GameController() {
   console.log("Welcome! This is Tic Tac Toe game!")
   printNewRound();
 
-  return {playRound,getActivePlayer}
+  return {playRound,getActivePlayer,checkWinner}
 
-}
+})()
 
-const game = GameController();
+GameController.playRound(1,2);
+GameController.playRound(1,1);
+GameController.playRound(2,2);
+GameController.playRound(0,0);
+GameController.playRound(5,5);
+GameController.playRound(2,1);
+GameController.playRound(2,1);
+GameController.playRound(2,0);
 
-game.playRound(1,2);
-game.playRound(1,1);
-game.playRound(2,2);
-game.playRound(0,0);
-game.playRound(5,5);
-game.playRound(2,1);
-game.playRound(2,1);
-game.playRound(2,0);
+GameController.checkWinner()
