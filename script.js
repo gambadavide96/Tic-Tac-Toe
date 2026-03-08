@@ -18,15 +18,21 @@ const GameBoard =(() => {
   const columns = 3;
   const board = [];
 
-  // Create a 2d array that will represent the state of the game board
-  // For this 2d array, row 0 will represent the top row and
-  // column 0 will represent the left-most column.
-  for(let i = 0; i < rows; i++){
-    board[i] = [] //A single row of the gameboard
-    for(let j = 0; j < columns; j++){
-      board[i].push(Cell())
+  const initBoard = () => {
+    // Create a 2d array that will represent the state of the game board
+    // For this 2d array, row 0 will represent the top row and
+    // column 0 will represent the left-most column.
+    for(let i = 0; i < rows; i++){
+      board[i] = [] //A single row of the gameboard
+      for(let j = 0; j < columns; j++){
+        board[i].push(Cell())
+      }
     }
   }
+
+  initBoard();
+
+  const getValues = () => board.map(row => row.map(cell => cell.getValue()));
 
   const getBoard = () => board;
 
@@ -52,21 +58,12 @@ const GameBoard =(() => {
   }
 
   const printBoard = () => {
-    const values = board.map(row => row.map(cell => cell.getValue()));
+    const values = getValues();
     values.forEach(row => console.log(row));
     console.log('\n');
   }
 
-  const resetGameboard = () => {
-    for(let i = 0; i < rows; i++){
-    board[i] = [] //A single row of the gameboard
-    for(let j = 0; j < columns; j++){
-      board[i].push(Cell())
-    }
-  }
-  }
-
-  return {getBoard,dropToken,printBoard,resetGameboard}
+  return {getBoard,dropToken,printBoard,initBoard,getValues}
 
 })()
 
@@ -146,9 +143,7 @@ const GameController = (() => {
 
   const checkWinner = () => {
 
-    const values = GameBoard.getBoard().map(row =>
-      row.map(cell => cell.getValue())
-    );
+    const values = GameBoard.getValues();
 
     const checks = [
       checkRows,
@@ -173,22 +168,20 @@ const GameController = (() => {
 
   const playRound = (row,column) => {
 
-    let winner;
-
     console.log(`The ${activePlayer.name} choose row: ${row} and column: ${column}`);
     const error = GameBoard.dropToken(activePlayer.token,row,column);
     if (error) return ;
 
-    winner = checkWinner()
+    let winner = checkWinner()
     if(winner === 'PlayerOne' || winner === 'PlayerTwo') {
       console.log(`The winner is ${winner}\n`);
       GameBoard.printBoard();
-      GameBoard.resetGameboard();
+      GameBoard.initBoard();
       return
     } else if(winner === 'Draw') {
       console.log(`The Game is a draw`);
       GameBoard.printBoard();
-      GameBoard.resetGameboard();
+      GameBoard.initBoard();
       return
     }
 
