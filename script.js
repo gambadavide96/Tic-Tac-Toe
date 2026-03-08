@@ -33,7 +33,7 @@ const GameBoard =(() => {
   const dropToken = (playerT,row,column) => {
 
      // Check valid coordinates
-    if (row < 0 || column < 0 || row > board.length || column > board[0].length) {
+    if (row < 0 || column < 0 || row >= board.length || column >= board[0].length) {
       console.log("Please choose valid coordinates")
       return true;
     }
@@ -41,7 +41,7 @@ const GameBoard =(() => {
     let cell = board[row][column];
 
     //Se la cella è già stata occupata, la mossa non è valida
-    if(cell.getValue() === 'X' || cell.getValue === 'O') {
+    if(cell.getValue() !== '-') {
       console.log("This cell is already occupied, choose another");
       return true;
     }
@@ -57,7 +57,16 @@ const GameBoard =(() => {
     console.log('\n');
   }
 
-  return {getBoard,dropToken,printBoard}
+  const resetGameboard = () => {
+    for(let i = 0; i < rows; i++){
+    board[i] = [] //A single row of the gameboard
+    for(let j = 0; j < columns; j++){
+      board[i].push(Cell())
+    }
+  }
+  }
+
+  return {getBoard,dropToken,printBoard,resetGameboard}
 
 })()
 
@@ -87,39 +96,100 @@ const GameController = (() => {
   }
 
   const checkRows = (values) => {
+   for(let i = 0; i < 3; i++)
+      if(values[i][0] !== '-' &&
+        values[i][0] === values[i][1] 
+        && values[i][1] === values[i][2])
+        return values[i][0];
+    
+    return '-';
    
   }
 
   const checkColumns = (values) => {
+    for(let j = 0; j < 3; j++)
+      if(values[0][j] !== '-' &&
+        values[0][j] === values[1][j] 
+        && values[1][j] === values[2][j])
+        return values[0][j];
 
-  }
-
-  const checkDiagonal = (values) => {
+      return '-';
     
   }
 
-  const checkWinner = () => {
-    const values = GameBoard.getBoard().map(row => row.map(cell => cell.getValue()));
-    //Check rows
-    const resultRow = checkRows(values);
-    //Check columns
-    const resultColumn = checkColumns(values)
-    //Check diagonal
-    const resulDiagonal = checkDiagonal(values)
+  const checkDiagonal1 = (values) => {
+    if(values[0][0] !== '-' && values[0][0] === values[1][1] && values[1][1] === values[2][2])
+      return values[0][0];
 
-
-    console.log(result)
-
+    return '-';
   }
 
+  const checkDiagonal2 = (values) => {
+    if(values[2][0] !== '-' && values[2][0] === values[1][1] && values[1][1] === values[0][2])
+      return values[2][0];
+
+    return '-';
+  }
+
+  const isBoardFull = (values) => {
+    return values.every(row => row.every(cell => cell !== '-'));
+  }
+
+  const getWinner = (result) => {
+    if(result === 'X')
+      return 'PlayerOne'
+    else if(result === 'O')
+      return 'PlayerTwo'
+
+    return 'None'
+  }
+
+  const checkWinner = () => {
+
+    const values = GameBoard.getBoard().map(row =>
+      row.map(cell => cell.getValue())
+    );
+
+    const checks = [
+      checkRows,
+      checkColumns,
+      checkDiagonal1,
+      checkDiagonal2
+    ];
+
+    for(const check of checks) {
+      const result = check(values);
+      const winner = getWinner(result);
+      if(winner !== 'None') 
+        return winner;
+    }
+
+    if(isBoardFull(values)){
+      return 'Draw';
+    }
+
+    return 'None';
+ }
+
   const playRound = (row,column) => {
+
+    let winner;
 
     console.log(`The ${activePlayer.name} choose row: ${row} and column: ${column}`);
     const error = GameBoard.dropToken(activePlayer.token,row,column);
     if (error) return ;
 
-    /*  This is where we would check for a winner and handle that logic,
-        such as a win message. */
+    winner = checkWinner()
+    if(winner === 'PlayerOne' || winner === 'PlayerTwo') {
+      console.log(`The winner is ${winner}\n`);
+      GameBoard.resetGameboard();
+      return
+    } else if(winner === 'Draw') {
+      console.log(`The Game is a draw`);
+      GameBoard.resetGameboard();
+      return
+    }
+
 
     switchPlayerTurn();
     printNewRound();
@@ -128,9 +198,8 @@ const GameController = (() => {
 
   // Initial play game message
   console.log("Welcome! This is Tic Tac Toe game!")
-  printNewRound();
 
-  return {playRound,getActivePlayer,checkWinner}
+  return {playRound,getActivePlayer}
 
 })()
 
@@ -142,5 +211,7 @@ GameController.playRound(5,5);
 GameController.playRound(2,1);
 GameController.playRound(2,1);
 GameController.playRound(2,0);
+GameController.playRound(0,2);
 
-GameController.checkWinner()
+//New Game
+GameController.playRound(1,2);
