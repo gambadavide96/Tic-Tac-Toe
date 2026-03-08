@@ -182,10 +182,12 @@ const GameController = (() => {
     winner = checkWinner()
     if(winner === 'PlayerOne' || winner === 'PlayerTwo') {
       console.log(`The winner is ${winner}\n`);
+      GameBoard.printBoard();
       GameBoard.resetGameboard();
       return
     } else if(winner === 'Draw') {
       console.log(`The Game is a draw`);
+      GameBoard.printBoard();
       GameBoard.resetGameboard();
       return
     }
