@@ -80,9 +80,14 @@ const GameController = (() => {
     }
   ]
 
+  let gameFinished = false;
   let isDraw = false;
-
   let activePlayer = players[0];  //All'inizio parte player1
+  let gameResult = 'Make a move';
+
+
+  const getActivePlayer = () => activePlayer ;
+  const getGameResult = () => gameResult;
 
   const switchPlayerTurn = () => {
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
@@ -160,6 +165,14 @@ const GameController = (() => {
 
   const playRound = (row,column) => {
 
+    if (gameFinished){
+      GameBoard.printBoard();
+      GameBoard.initBoard();
+      activePlayer = players[0];
+      gameFinished = false;
+      gameResult = 'Make a move';
+    }
+
     console.log(`The ${activePlayer.name} choose row: ${row + 1} and column: ${column + 1}`);
     const error = GameBoard.dropToken(activePlayer.token,row,column);
     if (error) return ;
@@ -168,13 +181,13 @@ const GameController = (() => {
     if(winner != null){
       if(winner === activePlayer) {
         console.log(`The winner is ${activePlayer.name}\n`);
+        gameResult = `The winner is ${activePlayer.name}\n`;
         } else if(isDraw) {
-        console.log(`The Game is a draw`);
+        console.log(`It's a draw`);
+        gameResult = `It's a draw!`
         isDraw = false;
         }
-      GameBoard.printBoard();
-      GameBoard.initBoard();
-      activePlayer = players[0];
+        gameFinished = true
       return
     }
 
@@ -187,20 +200,54 @@ const GameController = (() => {
   // Initial play game message
   console.log("Welcome! This is Tic Tac Toe game!")
 
-  return {playRound}
+  return {playRound,getActivePlayer,getGameResult}
 
 })()
 
-GameController.playRound(1,2);
-GameController.playRound(1,1);
-GameController.playRound(2,2);
-GameController.playRound(0,0);
-GameController.playRound(5,5);
-GameController.playRound(2,1);
-GameController.playRound(2,1);
-GameController.playRound(2,0);
-GameController.playRound(0,2);
+function screenController() {
 
-//New Game
-GameController.playRound(1,2);
-GameController.playRound(0,2);
+  const playerTurnDiv = document.querySelector('.turn');
+  const boardDiv = document.querySelector('.board');
+  const resultDiv = document.querySelector('.result');
+
+  const updateScreen = () => {
+
+    boardDiv.textContent = '' ;
+    resultDiv.textContent = GameController.getGameResult();
+    
+    const board = GameBoard.getBoard();
+    const activePlayer = GameController.getActivePlayer();
+
+    playerTurnDiv.textContent = `${activePlayer.name}'s turn.`;
+
+    board.forEach((row,rowIndex) => {
+      row.forEach((cell,columnIndex) => {
+        const cellButton = document.createElement("button");
+        cellButton.classList.add("cell");
+
+        cellButton.dataset.column = columnIndex;
+        cellButton.dataset.row = rowIndex;
+        cellButton.textContent = cell.getValue();
+
+        boardDiv.appendChild(cellButton);
+      })
+    })
+  }
+
+
+  function clickHandlerBoard(event) {
+    const selectedColumn = parseInt(event.target.dataset.column);
+    const selectedRow = parseInt(event.target.dataset.row);
+    if (!event.target.classList.contains("cell")) return;
+
+    GameController.playRound(selectedRow,selectedColumn);
+    updateScreen();
+  }
+
+  boardDiv.addEventListener("click",clickHandlerBoard);
+
+  updateScreen();
+
+}
+
+screenController();
