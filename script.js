@@ -80,8 +80,9 @@ const GameController = (() => {
     }
   ]
 
+  let isDraw = false;
+
   let activePlayer = players[0];  //All'inizio parte player1
-  const getActivePlayer = () => activePlayer;
 
   const switchPlayerTurn = () => {
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
@@ -97,9 +98,9 @@ const GameController = (() => {
       if(values[i][0] !== '-' &&
         values[i][0] === values[i][1] 
         && values[i][1] === values[i][2])
-        return values[i][0];
+        return true;
     
-    return '-';
+    return false;
    
   }
 
@@ -108,37 +109,28 @@ const GameController = (() => {
       if(values[0][j] !== '-' &&
         values[0][j] === values[1][j] 
         && values[1][j] === values[2][j])
-        return values[0][j];
+        return true;
 
-      return '-';
+      return false;
     
   }
 
   const checkDiagonal1 = (values) => {
     if(values[0][0] !== '-' && values[0][0] === values[1][1] && values[1][1] === values[2][2])
-      return values[0][0];
+      return true;
 
-    return '-';
+    return false;
   }
 
   const checkDiagonal2 = (values) => {
     if(values[2][0] !== '-' && values[2][0] === values[1][1] && values[1][1] === values[0][2])
-      return values[2][0];
+      return true;
 
-    return '-';
+    return false;
   }
 
   const isBoardFull = (values) => {
     return values.every(row => row.every(cell => cell !== '-'));
-  }
-
-  const getWinner = (result) => {
-    if(result === 'X')
-      return 'PlayerOne'
-    else if(result === 'O')
-      return 'PlayerTwo'
-
-    return 'None'
   }
 
   const checkWinner = () => {
@@ -153,35 +145,36 @@ const GameController = (() => {
     ];
 
     for(const check of checks) {
-      const result = check(values);
-      const winner = getWinner(result);
-      if(winner !== 'None') 
-        return winner;
+      const isWinner = check(values);
+      if(isWinner) 
+        return activePlayer;
     }
 
     if(isBoardFull(values)){
-      return 'Draw';
+      isDraw = true;
+      return isDraw;
     }
 
-    return 'None';
+    return null
  }
 
   const playRound = (row,column) => {
 
-    console.log(`The ${activePlayer.name} choose row: ${row} and column: ${column}`);
+    console.log(`The ${activePlayer.name} choose row: ${row + 1} and column: ${column + 1}`);
     const error = GameBoard.dropToken(activePlayer.token,row,column);
     if (error) return ;
 
     let winner = checkWinner()
-    if(winner === 'PlayerOne' || winner === 'PlayerTwo') {
-      console.log(`The winner is ${winner}\n`);
+    if(winner != null){
+      if(winner === activePlayer) {
+        console.log(`The winner is ${activePlayer.name}\n`);
+        } else if(isDraw) {
+        console.log(`The Game is a draw`);
+        isDraw = false;
+        }
       GameBoard.printBoard();
       GameBoard.initBoard();
-      return
-    } else if(winner === 'Draw') {
-      console.log(`The Game is a draw`);
-      GameBoard.printBoard();
-      GameBoard.initBoard();
+      activePlayer = players[0];
       return
     }
 
@@ -194,7 +187,7 @@ const GameController = (() => {
   // Initial play game message
   console.log("Welcome! This is Tic Tac Toe game!")
 
-  return {playRound,getActivePlayer}
+  return {playRound}
 
 })()
 
@@ -210,3 +203,4 @@ GameController.playRound(0,2);
 
 //New Game
 GameController.playRound(1,2);
+GameController.playRound(0,2);
